@@ -1,0 +1,8 @@
+---
+proj_dir: /opt/EZY_MC/
+git_url: https://github.com/kugelblitzz/EC2-CHAN-.git
+os_environment:
+  - key: AWS_ACCESS_KEY_ID
+    value : <VALUE>
+  - key: AWS_SECRET_ACCESS_KEY
+    value : <VALUE>

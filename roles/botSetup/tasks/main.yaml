@@ -1,0 +1,57 @@
+---
+- include_vars: ../vars/vars.yaml
+
+- name: Install PM2
+  npm:
+    name: pm2
+    global: true
+
+- name: Create Dir For Bot Repo Files
+  file:
+    path: "{{ proj_dir }}"
+    state: directory
+
+- name: Clone Git Repo For Bot
+  git:
+    repo: "{{ git_url }}"
+    dest: "{{ proj_dir }}bot"
+    refspec: '+refs/pull/*:refs/heads/*'
+    force: true
+
+- name: Configure AWS SDK Enviromental Variables
+  lineinfile:
+    dest: "/etc/environment"
+    state: present
+    regexp: "^{{ item.key }}="
+    line: "{{ item.key }}={{ item.value}}"
+  with_items: "{{ os_environment }}"
+
+- name: Ensure config.js Exists.
+  stat: path={{ proj_dir }}bot/config/example.config.js
+  register: file_exist
+
+- name: config.js does not Exist. Creating
+  command: mv {{ proj_dir }}/bot/config/example.config.js {{ proj_dir }}bot/config/config.js
+  when: file_exist.stat.exists
+
+- name: Copy Discord Bot Configuration from Local Machine.
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - src: ../../../files/config.js
+      dest: "{{ proj_dir }}bot/config/config.js"
+
+- name: Install Bot Dependencies
+  npm:
+    path: "{{ proj_dir }}bot/"
+
+- name: Remove PM2 Process If Running
+  command: "pm2 delete EC2CHAN"
+  ignore_errors: true
+
+- name: Start Bot Using PM2
+  command: "pm2 start --name EC2CHAN /opt/EZY_MC/bot/index.js"

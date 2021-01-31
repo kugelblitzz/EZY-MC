@@ -1,0 +1,21 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Update APT
+      apt:
+        name: '*'
+        state: latest
+        update_cache: yes
+
+- hosts: linode
+  vars_files:
+      - ./vars/main.yaml
+  become: true
+  roles:
+    - geerlingguy.nodejs
+
+  tasks:
+    - name: Call Bot Setup Role
+      import_role:
+        name: botSetup
